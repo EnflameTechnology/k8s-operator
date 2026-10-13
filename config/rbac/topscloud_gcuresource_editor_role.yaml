@@ -1,0 +1,24 @@
+# permissions for end users to edit gcuresources.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: gcuresource-editor-role
+rules:
+- apiGroups:
+  - topscloud.enflame.com
+  resources:
+  - gcuresources
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - topscloud.enflame.com
+  resources:
+  - gcuresources/status
+  verbs:
+  - get

@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: enflame-gcu-feature-discovery
+  namespace: kube-system
+  labels:
+    app.kubernetes.io/name: enflame-gcu-feature-discovery
+    app.kubernetes.io/version: 1.0.0
+    app.kubernetes.io/part-of: enflame-gcu
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: enflame-gcu-feature-discovery
+      app.kubernetes.io/part-of: enflame-gcu
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: enflame-gcu-feature-discovery
+        app.kubernetes.io/version: 1.0.0
+        app.kubernetes.io/part-of: enflame-gcu
+    spec:
+      tolerations:
+        - effect: NoSchedule
+          operator: Exists
+          key: node-role.kubernetes.io/master
+        - effect: NoSchedule
+          operator: Exists
+          key: node-role.kubernetes.io/control-plane
+      containers:
+        - image: artifact.enflame.cn/enflame_docker_images/enflame/gcu-feature-discovery:default
+          imagePullPolicy: IfNotPresent
+          name: enflame-gcu-feature-discovery
+          volumeMounts:
+            - name: output-dir
+              mountPath: "/etc/kubernetes/node-feature-discovery/features.d"
+            - name: host-sys
+              mountPath: "/sys"
+            - name: topscloud-config
+              mountPath: /etc/topscloud
+      volumes:
+        - name: output-dir
+          hostPath:
+            path: "/etc/kubernetes/node-feature-discovery/features.d"
+        - name: host-sys
+          hostPath:
+            path: "/sys"
+        - name: topscloud-config
+          hostPath:
+            path: /etc/topscloud
+            type: DirectoryOrCreate

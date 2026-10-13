@@ -1,0 +1,22 @@
+## Type make to build bin before building docker image.
+
+FROM ubuntu:20.04
+
+RUN apt update
+RUN apt install -qy pciutils
+RUN apt install -qy kmod
+RUN apt install -qy make
+RUN apt install -qy gcc
+RUN apt install -qy libelf1
+RUN apt install -y lsb-release
+
+WORKDIR /work
+
+COPY enflame*.run /work/
+RUN chmod 755 /work/enflame*.run
+
+COPY ./binary/driver-toolkit /work/
+RUN chmod 755 /work/driver-toolkit
+
+ENTRYPOINT ["/work/driver-toolkit"]
+

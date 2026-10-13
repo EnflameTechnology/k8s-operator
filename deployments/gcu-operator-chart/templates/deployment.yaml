@@ -1,0 +1,96 @@
+# Copyright (c) 2022 Enflame. All Rights Reserved.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gcu-operator
+  namespace: {{ $.Release.Namespace }}
+  labels:
+    control-plane: gcu-operator
+spec:
+  selector:
+    matchLabels:
+      control-plane: gcu-operator
+  replicas: {{ .Values.replicaCount }}
+  template:
+    metadata:
+      annotations:
+        kubectl.kubernetes.io/default-container: manager
+      labels:
+        control-plane: gcu-operator
+    spec:
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: control-plane
+                operator: In
+                values:
+                - gcu-operator
+            topologyKey: "kubernetes.io/hostname"
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: node-role.kubernetes.io/master
+                operator: Exists
+            - matchExpressions:
+              - key: node-role.kubernetes.io/control-plane
+                operator: Exists
+      # securityContext:
+      #   runAsNonRoot: true
+        # TODO(user): For common cases that do not require escalating privileges
+        # it is recommended to ensure that all your Pods/Containers are restrictive.
+        # More info: https://kubernetes.io/docs/concepts/security/pod-security-standards/#restricted
+        # Please uncomment the following code if your project does NOT have to work on old Kubernetes
+        # versions < 1.19 or on vendors versions which do NOT support this field by default (i.e. Openshift < 4.11 ).
+        # seccompProfile:
+        #   type: RuntimeDefault
+      hostNetwork: true
+      tolerations:
+      - effect: NoSchedule
+        operator: Exists
+        key: node-role.kubernetes.io/master
+      - effect: NoSchedule
+        operator: Exists
+        key: node-role.kubernetes.io/control-plane
+      containers:
+      - command:
+        - /manager
+        args:
+        - --leader-elect
+        - --metrics-bind-address=:{{ .Values.metricsBindAddress }}
+        image: "{{ .Values.image.repository }}/{{ .Values.image.name }}:{{ .Values.image.tag }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        name: manager
+        securityContext:
+          privileged: true
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: 8081
+          initialDelaySeconds: 15
+          periodSeconds: 20
+        readinessProbe:
+          httpGet:
+            path: /readyz
+            port: 8081
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        resources:
+          limits:
+            cpu: 500m
+            memory: 512Mi
+          requests:
+            cpu: 100m
+            memory: 512Mi
+        volumeMounts:
+          - name: operator-dir
+            mountPath: /var/log/enflame/gcu-operator
+      volumes:
+        - name: operator-dir
+          hostPath:
+            path: /var/log/enflame/gcu-operator
+            type: DirectoryOrCreate
+      serviceAccountName: {{ .Values.serviceAccount.name }}
+      terminationGracePeriodSeconds: 10

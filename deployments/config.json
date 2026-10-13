@@ -1,0 +1,60 @@
+{
+    "common": {
+        "os": "ubuntu",
+        "cli": "docker",
+        "repo": "artifact.enflame.cn/enflame_docker_images/enflame",
+        "namespace": "k8s.io"
+    },
+    "driver": {
+        "build": false,
+        "path": "If-you-need-to-build-driver-image-be-sure-to-modify-this-field-to-specify-the-absolute-path-of-driver-folder",
+        "name": "gcu-driver",
+        "tag": "default"
+    },
+    "nfd": {
+        "build": true,
+        "name": "node-feature-discovery",
+        "tag": "default"
+    },
+    "runtime": {
+        "build": true,
+        "name": "container-toolkit",
+        "tag": "default"
+    },
+    "plugin": {
+        "build": true,
+        "name": "k8s-device-plugin",
+        "tag": "default"
+    },
+    "gcuExporter": {
+        "build": true,
+        "name": "gcu-exporter",
+        "tag": "default"
+    },
+    "nodeExporter": {
+        "build": true,
+        "name": "node-exporter",
+        "tag": "default"
+    },
+    "gfd": {
+        "build": true,
+        "name": "gcu-feature-discovery",
+        "tag": "default"
+    },
+    "gsp": {
+        "build": false,
+        "name": "gcushare-scheduler-plugin",
+        "tag": "default",
+        "compatVersion": ""
+    },
+    "gdp": {
+        "build": false,
+        "name": "gcushare-device-plugin",
+        "tag": "default"
+    },
+    "kdm": {
+        "build": false,
+        "name": "k8s-driver-manager",
+        "tag": "default"
+    }
+}

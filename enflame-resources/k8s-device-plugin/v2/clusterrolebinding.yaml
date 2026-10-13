@@ -1,0 +1,13 @@
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: enflame-k8s-device-plugin
+  namespace: kube-system
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: enflame-k8s-device-plugin
+subjects:
+- kind: ServiceAccount
+  name: enflame-k8s-device-plugin
+  namespace: kube-system

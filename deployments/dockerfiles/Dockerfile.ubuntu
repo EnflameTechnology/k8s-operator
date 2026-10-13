@@ -1,0 +1,16 @@
+# Copyright (c) 2024 Enflame. All Rights Reserved.
+
+FROM ubuntu:22.04
+
+WORKDIR /
+# ENV CGO_ENABLED=0
+# ENV GOOS=linux
+# ENV GOARCH=amd64
+
+COPY manager /
+RUN mkdir -p /opt/gcu-operator
+COPY enflame-resources /opt/gcu-operator/
+COPY g_version.txt /tmp/
+# USER 65532:65532
+
+ENTRYPOINT ["/manager"]

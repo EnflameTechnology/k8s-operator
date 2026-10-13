@@ -1,0 +1,128 @@
+# Copyright (c) 2025, ENFLAME INC.  All rights reserved.
+apiVersion: topscloud.enflame.com/v1
+kind: GcuResource
+metadata:
+  name: enflame-gcu-resource
+spec:
+  nfd:
+    deploy: true # Whether to deploy this component, default true
+    namespace: kube-system
+    master:
+      name: enflame-node-feature-discovery-master
+      image: node-feature-discovery
+      version: default
+      imagePullPolicy: IfNotPresent
+      repository: artifact.enflame.cn/enflame_docker_images/enflame
+    worker:
+      name: enflame-node-feature-discovery-worker
+      image: node-feature-discovery
+      version: default
+      imagePullPolicy: IfNotPresent
+      repository: artifact.enflame.cn/enflame_docker_images/enflame
+  driver:
+    deploy: false
+    oneShot: true # During the current lifecycle of the CR, the driver is installed only once
+    noS60GCheck: false # Set to true if device is S60G
+    env:
+      - name: VGCU_ENABLED
+        value: 'false'
+      - name: PEER_MEM_ENABLED
+        value: 'false'
+    image: gcu-driver
+    version: default
+    name: enflame-gcu-driver
+    namespace: kube-system
+    imagePullPolicy: IfNotPresent
+    nodeSelector:
+      enflame.com/gcu.present: 'true'
+    repository: artifact.enflame.cn/enflame_docker_images/enflame
+  containerToolkit:
+    env:
+      - name: RESTART_CONTAINER_ENGINE
+        value: 'true'
+      - name: RESTART_MODE
+        value: signal
+      - name: CDI_ENABLED
+        value: 'false'
+      - name: ENFLAME_RUNTIME_ENABLED
+        value: 'true'
+    image: container-toolkit
+    version: default
+    name: enflame-container-toolkit
+    namespace: kube-system
+    imagePullPolicy: IfNotPresent
+    nodeSelector:
+      enflame.com/gcu.present: 'true'
+    repository: artifact.enflame.cn/enflame_docker_images/enflame
+  devicePlugin:
+    image: k8s-device-plugin
+    version: default
+    variant: basic
+    name: enflame-k8s-device-plugin
+    namespace: kube-system
+    imagePullPolicy: IfNotPresent
+    nodeSelector:
+      enflame.com/gcu.present: 'true'
+    command:
+      - /usr/bin/enflame-device-plugin
+    args: []
+    repository: artifact.enflame.cn/enflame_docker_images/enflame
+  gcuExporter:
+    image: gcu-exporter
+    version: default
+    name: enflame-gcu-exporter
+    namespace: kube-system
+    imagePullPolicy: IfNotPresent
+    nodeSelector:
+      enflame.com/gcu.present: 'true'
+    repository: artifact.enflame.cn/enflame_docker_images/enflame
+  nodeExporter:
+    image: node-exporter
+    version: default
+    name: enflame-node-exporter
+    namespace: kube-system
+    imagePullPolicy: IfNotPresent
+    nodeSelector:
+      enflame.com/gcu.present: 'true'
+    repository: artifact.enflame.cn/enflame_docker_images/enflame
+  gfd:
+    image: gcu-feature-discovery
+    version: default
+    name: enflame-gcu-feature-discovery
+    namespace: kube-system
+    imagePullPolicy: IfNotPresent
+    nodeSelector:
+      enflame.com/gcu.present: 'true'
+    repository: artifact.enflame.cn/enflame_docker_images/enflame
+  gcushare:
+    deploy: false
+    devicePlugin:
+      name: gcushare-device-plugin
+      image: gcushare-device-plugin
+      version: default
+      namespace: kube-system
+      imagePullPolicy: IfNotPresent
+      nodeSelector:
+        enflame.com/gcu.present: 'true'
+      sliceCount: 6              # The count a GCU is shared into
+      gcushareNodes: []          # Input the nodes name you want to share GCU, default all
+      repository: artifact.enflame.cn/enflame_docker_images/enflame
+    schedulerPlugin:
+      name: gcushare-scheduler-plugin
+      image: gcushare-scheduler-plugin
+      version: default
+      namespace: kube-system
+      imagePullPolicy: IfNotPresent
+      nodeSelector:
+        enflame.com/gcu.present: 'true'
+      repository: artifact.enflame.cn/enflame_docker_images/enflame
+  k8sDriverManager:
+    deploy: false
+    name: enflame-k8s-driver-manager
+    image: k8s-driver-manager
+    version: default
+    namespace: kube-system
+    imagePullPolicy: IfNotPresent
+    nodeSelector:
+      enflame.com/gcu.present: 'true'
+    repository: artifact.enflame.cn/enflame_docker_images/enflame

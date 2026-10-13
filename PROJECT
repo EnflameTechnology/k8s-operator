@@ -1,0 +1,20 @@
+domain: enflame.com
+layout:
+- go.kubebuilder.io/v3
+multigroup: true
+plugins:
+  manifests.sdk.operatorframework.io/v2: {}
+  scorecard.sdk.operatorframework.io/v2: {}
+projectName: gcu-operator
+repo: gcu-operator
+resources:
+- api:
+    crdVersion: v1
+    namespaced: true
+  controller: true
+  domain: enflame.com
+  group: topscloud
+  kind: GcuResource
+  path: gcu-operator/apis/topscloud/v1
+  version: v1
+version: "3"

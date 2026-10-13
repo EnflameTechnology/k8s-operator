@@ -1,0 +1,11 @@
+# Source: node-feature-discovery/templates/serviceaccount.yaml
+# Copyright (c) 2022 Enflame. All Rights Reserved.
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: node-feature-discovery-master
+  namespace: kube-system
+  labels:
+    app.kubernetes.io/name: node-feature-discovery
+    app.kubernetes.io/instance: node-feature-discovery
+    app.kubernetes.io/version: "v0.17.3"

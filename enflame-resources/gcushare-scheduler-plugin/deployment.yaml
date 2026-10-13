@@ -1,0 +1,76 @@
+# Copyright (c) 2025, ENFLAME INC.  All rights reserved.
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: gcushare-scheduler-plugin
+  namespace: kube-system
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+        app: gcushare
+        component: gcushare-scheduler-plugin
+  template:
+    metadata:
+      labels:
+        app: gcushare
+        component: gcushare-scheduler-plugin
+    spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: node-role.kubernetes.io/master
+                operator: Exists
+            - matchExpressions:
+              - key: node-role.kubernetes.io/control-plane
+                operator: Exists
+      tolerations:
+      - effect: NoSchedule
+        operator: Exists
+        key: node-role.kubernetes.io/master
+      - effect: NoSchedule
+        operator: Exists
+        key: node-role.kubernetes.io/control-plane
+      - effect: NoSchedule
+        operator: Exists
+        key: node.cloudprovider.kubernetes.io/uninitialized
+      serviceAccount: gcushare-scheduler-plugin
+      containers:
+        - name: gcushare-scheduler-plugin
+          image: artifact.enflame.cn/enflame_docker_images/enflame/gcushare-scheduler-plugin:latest
+          imagePullPolicy: IfNotPresent
+          args:
+            - gcushare-scheduler-plugin
+            - --config=/config/gcushare-scheduler-plugin-config.yaml
+            - --v=3
+          env:
+          - name: PORT
+            value: "12345"
+          volumeMounts:
+          - name: gcushare-dir
+            mountPath: /var/log/enflame/gcushare
+          - name: topscloud-config
+            mountPath: /etc/topscloud
+          - name: config
+            mountPath: /config
+          readinessProbe:
+            tcpSocket:
+              port: 12345
+            initialDelaySeconds: 3
+            periodSeconds: 5
+      volumes:
+        - name: gcushare-dir
+          hostPath:
+            path: /var/log/enflame/gcushare
+            type: DirectoryOrCreate
+        - name: topscloud-config
+          hostPath:
+            path: /etc/topscloud
+            type: DirectoryOrCreate
+        - name: config
+          configMap:
+            name: gcushare-scheduler-plugin

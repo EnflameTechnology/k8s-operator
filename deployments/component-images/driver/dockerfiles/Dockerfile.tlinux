@@ -1,0 +1,13 @@
+# Copyright (c) 2024 Enflame. All Rights Reserved.
+
+FROM tencentos/tencentos_server31:latest
+
+WORKDIR /work
+
+COPY enflame*.run /work/
+RUN chmod 755 /work/enflame*.run
+
+COPY ./binary/driver-toolkit /work/
+RUN chmod 755 /work/driver-toolkit
+
+ENTRYPOINT ["/work/driver-toolkit"]

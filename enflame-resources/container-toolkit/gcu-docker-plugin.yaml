@@ -1,0 +1,123 @@
+# Copyright (c) 2022 Enflame. All Rights Reserved.
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: enflame-container-toolkit
+  namespace: kube-system
+  labels:
+     app.kubernetes.io/name: enflame-container-toolkit
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: enflame-container-toolkit
+  updateStrategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+         app.kubernetes.io/name: enflame-container-toolkit
+    spec:
+      hostPID: true
+      tolerations:
+        - effect: NoSchedule
+          operator: Exists
+          key: node-role.kubernetes.io/master
+        - effect: NoSchedule
+          operator: Exists
+          key: node-role.kubernetes.io/control-plane
+      serviceAccount: enflame-container-toolkit
+      containers:
+        - name: enflame-container-toolkit
+          image: artifact.enflame.cn/enflame_docker_images/enflame/container-toolkit:default
+          imagePullPolicy: IfNotPresent
+          env:
+          - name: NODE_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: spec.nodeName
+          - name: LOGPATH
+            value: /var/log/enflame/gcu-operator/gcu-container-toolkit.log
+          securityContext:
+            privileged: true
+          readinessProbe:
+            exec:
+              command:
+              - cat
+              - /tmp/toolkit.running
+            initialDelaySeconds: 2
+            periodSeconds: 3
+          lifecycle:
+            preStop:
+              exec:
+                command: ["rm", "-fr", "/tmp/toolkit.running"]
+          volumeMounts:
+            - name: containerd-config
+              mountPath: /etc/containerd
+            - name: docker-config
+              mountPath: /etc/docker
+            - name: usr-lib
+              mountPath: /usr/lib
+            - name: usr-lib64
+              mountPath: /usr/lib64
+            - name: usr-bin
+              mountPath: /usr/bin
+            - name: config-path
+              mountPath: /etc/enflame-container-runtime
+            - name: var-run
+              mountPath: /var/run
+            - name: var-log
+              mountPath: /var/log
+            - name: etc-localtime
+              mountPath: /etc/localtime
+              readOnly: True
+            - name: topscloud-config
+              mountPath: /etc/topscloud
+            - name: host-root
+              mountPath: /host-root
+              readOnly: true
+              mountPropagation: HostToContainer
+            - name: log-path
+              mountPath: /var/log/enflame/gcu-operator
+            - name: data
+              mountPath: /restart
+      volumes:
+        - name: data
+          emptyDir: {}
+        - name: containerd-config
+          hostPath:
+            path: /etc/containerd
+        - name: docker-config
+          hostPath:
+            path: /etc/docker
+        - name: usr-lib
+          hostPath:
+            path: /usr/lib
+        - name: usr-lib64
+          hostPath:
+            path: /usr/lib64
+        - name: usr-bin
+          hostPath:
+            path: /usr/bin
+        - name: var-run
+          hostPath:
+            path: /var/run/
+        - name: var-log
+          hostPath:
+            path: /var/log/
+        - name: etc-localtime
+          hostPath:
+            path: /etc/localtime
+        - name: config-path
+          hostPath:
+            path: /etc/enflame-container-runtime
+        - name: topscloud-config
+          hostPath:
+            path: /etc/topscloud
+            type: DirectoryOrCreate
+        - name: host-root
+          hostPath:
+            path: /
+        - name: log-path
+          hostPath:
+            path: /var/log/enflame/gcu-operator
+            type: DirectoryOrCreate

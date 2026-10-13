@@ -1,0 +1,129 @@
+# Copyright (c) 2022 Enflame. All Rights Reserved.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name:  node-feature-discovery-master
+  namespace: kube-system
+  labels:
+    app.kubernetes.io/name: node-feature-discovery
+    app.kubernetes.io/instance: node-feature-discovery
+    app.kubernetes.io/version: "v0.17.3"
+    role: master
+spec:
+  replicas: 1
+  revisionHistoryLimit: 
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: node-feature-discovery
+      app.kubernetes.io/instance: node-feature-discovery
+      role: master
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: node-feature-discovery
+        app.kubernetes.io/instance: node-feature-discovery
+        role: master
+      annotations:
+        checksum/config: 3d06de4da0413bb1b36d91dd2200b27293518e5d5d9f5171cdef1b88140a98dd
+    spec:
+      serviceAccountName: node-feature-discovery-master
+      enableServiceLinks: false
+      securityContext:
+        {}
+      hostNetwork: false
+      initContainers:
+        - name: master-prune
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+              - ALL
+            readOnlyRootFilesystem: true
+          image: "artifact.enflame.cn/enflame_docker_images/enflame/node-feature-discovery:v0.17.3"
+          imagePullPolicy: IfNotPresent
+          command:
+            - "nfd-master"
+          args:
+            - "-prune"
+      containers:
+        - name: master
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+              - ALL
+            readOnlyRootFilesystem: true
+          image: "artifact.enflame.cn/enflame_docker_images/enflame/node-feature-discovery:v0.17.3"
+          imagePullPolicy: IfNotPresent
+          startupProbe:
+            grpc:
+              port: 8082
+            failureThreshold: 30
+          livenessProbe:
+            grpc:
+              port: 8082
+          readinessProbe:
+            grpc:
+              port: 8082
+            failureThreshold: 10
+          ports:
+          - containerPort: 8081
+            name: metrics
+          - containerPort: 8082
+            name: health
+          env:
+          - name: NODE_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: spec.nodeName
+          command:
+            - "nfd-master"
+          resources:
+            limits:
+              memory: 4Gi
+            requests:
+              cpu: 100m
+              memory: 128Mi
+          args:
+            - "-enable-leader-election"
+            # Go over featureGates and add the feature-gate flag
+            - "-feature-gates=NodeFeatureGroupAPI=false"
+            - "-metrics=8081"
+            - "-grpc-health=8082"
+          volumeMounts:
+            - name: nfd-master-conf
+              mountPath: "/etc/kubernetes/node-feature-discovery"
+              readOnly: true
+      volumes:
+        - name: nfd-master-conf
+          configMap:
+            name: node-feature-discovery-master-conf
+            items:
+              - key: nfd-master.conf
+                path: nfd-master.conf
+      affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - preference:
+              matchExpressions:
+              - key: node-role.kubernetes.io/master
+                operator: In
+                values:
+                - ""
+            weight: 1
+          - preference:
+              matchExpressions:
+              - key: node-role.kubernetes.io/control-plane
+                operator: In
+                values:
+                - ""
+            weight: 1
+      tolerations:
+        - effect: NoSchedule
+          key: node-role.kubernetes.io/master
+          operator: Equal
+          value: ""
+        - effect: NoSchedule
+          key: node-role.kubernetes.io/control-plane
+          operator: Equal
+          value: ""

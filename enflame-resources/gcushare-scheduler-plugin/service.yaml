@@ -1,0 +1,17 @@
+# Copyright (c) 2025, ENFLAME INC.  All rights reserved.
+apiVersion: v1
+kind: Service
+metadata:
+  name: gcushare-scheduler-plugin
+  namespace: kube-system
+  labels:
+    app: gcushare
+    component: gcushare-scheduler-plugin
+spec:
+  ports:
+    - protocol: TCP
+      port: 32766
+      targetPort: 12345
+  selector:
+    app: gcushare
+    component: gcushare-scheduler-plugin

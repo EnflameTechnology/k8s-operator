@@ -1,0 +1,21 @@
+# Copyright (c) 2022 Enflame. All Rights Reserved.
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    name: gcu-exporter
+  name: gcu-exporter-service
+  namespace: kube-system
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/path: /metrics
+    prometheus.io/port: "9400"
+spec:
+  selector:
+    name: gcu-exporter
+  ports:
+    - name: exporterport
+      port: 9400
+      targetPort: 9400
+      nodePort: 30940
+  type: NodePort

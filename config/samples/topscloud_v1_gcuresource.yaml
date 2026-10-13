@@ -1,0 +1,6 @@
+apiVersion: topscloud.enflame.com/v1
+kind: GcuResource
+metadata:
+  name: gcuresource-sample
+spec:
+  # TODO(user): Add fields here

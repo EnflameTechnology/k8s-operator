@@ -1,0 +1,36 @@
+## Type make to build bin before building docker image.
+
+FROM ubuntu:16.04
+
+RUN mv /etc/apt/sources.list /etc/apt/sources.list.bak && \
+    echo "deb http://mirrors.enflame.cn/ubuntu/ xenial main restricted universe multiverse" >/etc/apt/sources.list && \
+    echo "deb http://mirrors.enflame.cn/ubuntu/ xenial-security main restricted universe multiverse" >>/etc/apt/sources.list && \
+    echo "deb http://mirrors.enflame.cn/ubuntu/ xenial-updates main restricted universe multiverse" >>/etc/apt/sources.list && \
+    echo "deb http://mirrors.enflame.cn/ubuntu/ xenial-proposed main restricted universe multiverse" >>/etc/apt/sources.list && \
+    echo "deb http://mirrors.enflame.cn/ubuntu/ xenial-backports main restricted universe multiverse" >>/etc/apt/sources.list && \
+    echo "deb http://us.archive.ubuntu.com/ubuntu/ xenial main restricted universe multiverse" >/etc/apt/sources.list && \
+    echo "deb http://us.archive.ubuntu.com/ubuntu/ xenial-security main restricted universe multiverse" >>/etc/apt/sources.list && \
+    echo "deb http://us.archive.ubuntu.com/ubuntu/ xenial-updates main restricted universe multiverse" >>/etc/apt/sources.list && \
+    echo "deb http://us.archive.ubuntu.com/ubuntu/ xenial-proposed main restricted universe multiverse" >>/etc/apt/sources.list && \
+    echo "deb http://us.archive.ubuntu.com/ubuntu/ xenial-backports main restricted universe multiverse" >>/etc/apt/sources.list
+
+RUN apt update --fix-missing
+RUN apt install -qy pciutils
+RUN apt install -qy kmod
+RUN apt install -qy make
+RUN apt install -qy gcc
+RUN apt install -qy libelf1
+RUN apt install -qy libssl-dev
+RUN apt install -qy sudo
+RUN apt install -y lsb-release
+
+WORKDIR /work
+
+COPY enflame*.run /work/
+RUN chmod 755 /work/enflame*.run
+
+COPY ./binary/driver-toolkit /work/
+RUN chmod 755 /work/driver-toolkit
+
+ENTRYPOINT ["/work/driver-toolkit"]
+

@@ -1,0 +1,80 @@
+# Copyright (c) 2022 Enflame. All Rights Reserved.
+#jinja2:lstrip_blocks: True
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: enflame-gcu-exporter
+  namespace: kube-system
+  labels:
+     app.kubernetes.io/name: enflame-gcu-exporter
+spec:
+  selector:
+    matchLabels:
+      name: gcu-exporter
+      app.kubernetes.io/name: enflame-gcu-exporter
+  updateStrategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        name: gcu-exporter
+        app.kubernetes.io/name: enflame-gcu-exporter
+    spec:
+      hostNetwork: true
+      tolerations:
+        - effect: NoSchedule
+          operator: Exists
+          key: node-role.kubernetes.io/master
+        - effect: NoSchedule
+          operator: Exists
+          key: node-role.kubernetes.io/control-plane
+      containers:
+        - name: enflame-gcu-exporter
+          image: artifact.enflame.cn/enflame_docker_images/enflame/gcu-exporter:default
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            privileged: true
+          ports:
+            - name: exporterport
+              protocol: TCP
+              containerPort: 9400
+              hostPort: 9400
+          resources:
+            requests:
+              memory: 100Mi
+              cpu: 100m
+            limits:
+              memory: 2000Mi
+              cpu: 2000m
+          volumeMounts:
+            - name: libefml-link
+              mountPath: /usr/lib/libefml.so
+            - name: libefml-real
+              mountPath: /usr/local/efsmi
+            - name: syspath
+              mountPath: /sys
+            - name: localtime
+              mountPath: /etc/localtime
+            - name: varlock
+              mountPath: /var/lock
+            - name: pod-resources
+              mountPath: /var/lib/kubelet/pod-resources
+      volumes:
+        - name: libefml-link
+          hostPath:
+            path: /usr/lib/libefml.so
+        - name: libefml-real
+          hostPath:
+            path: /usr/local/efsmi
+        - name: syspath
+          hostPath:
+            path: /sys
+        - name: localtime
+          hostPath:
+            path: /etc/localtime
+        - name: varlock
+          hostPath:
+            path: /var/lock
+        - name: pod-resources
+          hostPath:
+            path: /var/lib/kubelet/pod-resources

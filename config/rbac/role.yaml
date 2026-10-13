@@ -1,0 +1,32 @@
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: manager-role
+rules:
+- apiGroups:
+  - topscloud.enflame.com
+  resources:
+  - gcuresources
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - topscloud.enflame.com
+  resources:
+  - gcuresources/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - topscloud.enflame.com
+  resources:
+  - gcuresources/status
+  verbs:
+  - get
+  - patch
+  - update

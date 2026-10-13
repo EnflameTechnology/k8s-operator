@@ -1,0 +1,76 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: k8s-driver-manager-daemonset
+  namespace: kube-system
+spec:
+  selector:
+    matchLabels:
+      name: k8s-driver-manager-ds
+  updateStrategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        name: k8s-driver-manager-ds
+    spec:
+      hostNetwork: true
+      tolerations:
+        - effect: NoSchedule
+          operator: Exists
+          key: node-role.kubernetes.io/master
+        - effect: NoSchedule
+          operator: Exists
+          key: node-role.kubernetes.io/control-plane
+      containers:
+        - name: k8s-driver-manager
+          image: artifact.enflame.cn/enflame_docker_images/enflame/k8s-driver-manager:default
+          imagePullPolicy: IfNotPresent #Always
+          command: ["/bin/bash", "-c"]
+          args:
+          - /usr/bin/driver-manager preflight_check && sleep inf
+          env:
+          - name: NODE_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: spec.nodeName
+          securityContext:
+            privileged: true
+            seLinuxOptions:
+              level: "s0"
+          resources:
+            requests:
+              memory: 100Mi
+              cpu: 100m
+            limits:
+              memory: 2000Mi
+              cpu: 2000m
+          volumeMounts:
+            - name: syspath
+              mountPath: /sys
+            - name: modules
+              mountPath: /lib/modules
+            - name: k8s-driver-manager-dir
+              mountPath: /var/log/enflame/k8s-driver-manager
+            - name: k8s-driver-manager-log
+              mountPath: /var/log/enflame/k8s-driver-manager/k8s-driver-manager.log
+          lifecycle:
+            preStop:
+              exec:
+                command: ["/bin/sh", "-c", "/usr/bin/vfio-manage unbind --all"]
+      terminationGracePeriodSeconds: 30
+      volumes:
+        - name: syspath
+          hostPath:
+            path: /sys
+        - name: modules
+          hostPath:
+            path: /lib/modules
+        - name: k8s-driver-manager-dir
+          hostPath:
+            path: /var/log/enflame/k8s-driver-manager
+            type: DirectoryOrCreate
+        - name: k8s-driver-manager-log
+          hostPath:
+            path: /var/log/enflame/k8s-driver-manager/k8s-driver-manager.log
+            type: FileOrCreate

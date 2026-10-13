@@ -1,0 +1,13 @@
+# Copyright 2022 Enflame. All Rights Reserved.
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: enflame-gcu-driver
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - nodes
+  verbs:
+  - get
+  - patch

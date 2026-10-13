@@ -1,0 +1,60 @@
+# Copyright (c) 2022 Enflame. All Rights Reserved.
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: enflame-k8s-device-plugin
+  namespace: kube-system
+  labels:
+    app.kubernetes.io/name: enflame-k8s-device-plugin
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: enflame-k8s-device-plugin
+  updateStrategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+         app.kubernetes.io/name: enflame-k8s-device-plugin
+         name: enflame-k8s-device-plugin
+    spec:
+      tolerations:
+        - effect: NoSchedule
+          operator: Exists
+          key: node-role.kubernetes.io/master
+        - effect: NoSchedule
+          operator: Exists
+          key: node-role.kubernetes.io/control-plane
+      containers:
+        - name: enflame-k8s-device-plugin
+          image: artifact.enflame.cn/enflame_docker_images/enflame/k8s-device-plugin:default
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            privileged: false
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+          volumeMounts:
+            - name: device-plugin
+              mountPath: /var/lib/kubelet/device-plugins
+            - name: enflame-toolkit
+              mountPath: /var/run/enflame
+            - name: etc-localtime
+              mountPath: /etc/localtime
+              readOnly: True
+            - name: topscloud-config
+              mountPath: /etc/topscloud
+      volumes:
+        - name: device-plugin 
+          hostPath:
+            path: /var/lib/kubelet/device-plugins
+        - name: enflame-toolkit
+          hostPath:
+            path: /var/run/enflame
+        - name: etc-localtime
+          hostPath:
+            path: /etc/localtime
+        - name: topscloud-config
+          hostPath:
+            path: /etc/topscloud
+            type: DirectoryOrCreate

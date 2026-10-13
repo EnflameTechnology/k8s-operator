@@ -1,0 +1,22 @@
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: k8s-device-plugin
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - pods
+  verbs:
+  - update
+  - patch
+  - get
+  - list
+  - watch
+- apiGroups:
+  - ""
+  resources:
+  - bindings
+  - pods/binding
+  verbs:
+  - create

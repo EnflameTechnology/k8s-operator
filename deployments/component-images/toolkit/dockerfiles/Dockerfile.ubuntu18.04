@@ -1,0 +1,12 @@
+## Type make to build bin before building docker image.
+
+FROM ubuntu:22.04
+
+COPY ./binary/enflame-toolkit /work/
+RUN chmod 755 /work/enflame-toolkit
+
+WORKDIR /work
+
+COPY ./enflame-container-toolkit_*.run /work/
+
+ENTRYPOINT ["/work/enflame-toolkit"]
